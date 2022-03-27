@@ -1,3 +1,7 @@
+<p align="center">
+<img src="https://github.com/tryingsomestuff/Morph/blob/main/demo/video_output2.gif" width="350"> 
+</p>
+
 # Tell me how to run it !
 
 To morph between two images just do
