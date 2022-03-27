@@ -86,6 +86,13 @@ In this clip the triangles are printed to better understand what is going on. Mo
 <img src="https://github.com/tryingsomestuff/Morph/blob/main/demo/video_output.gif" width="350"> 
 </p>
 
+## Troubleshooting
+
+A lot of things can go wrong in the process. Here are some possible issue :
+- the detector cannot find a face on the picture (`NoFaceFound` exception) : maybe the face it not exactly front oriented or too rotated in the picture. You can try to edit the picture to make the face well oriented and crop the picture by yourself
+- the detector finds more than one person (`MoreThanOneFaceFound` exception) : if there are more than one person on the picture, for now, the algorithm will fail. This is work in progress ...
+- any other issue (out of bound, ffmpeg issue, ...) : try to use a simpler picture, with a uniform background.
+
 # Credits
 
 This little tool is more or less a rewrite of https://github.com/provostm/face-morphing-multiple-images as a way to learn a bit about dlib.
