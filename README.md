@@ -55,6 +55,10 @@ Then, given such a face region we can detect key facial structures in the face r
 
 The detector might struggle if the face is not straight-on view or too much rotated, also if the person is wearing glasses. Using the `shape_predictor_68_face_landmarks` model, we will get 68 control points as shown in the following picture.
 
+<p align="center">
+<img src="https://github.com/tryingsomestuff/Morph/blob/main/demo/68_points.png" width="550"> 
+</p>
+
 ## Triangulate the image based on the control points
 
 Once we have the 68 control points, we add 8 more : 4 at the image corners and 4 at the middle of each images size; this is enough to triangulate the image using the `cv2.Subdiv2D` tool. We then keep track of the connectivity : which points is in which triangle. That's all ...
@@ -67,7 +71,16 @@ Based on the current frame number we construct the triangle interpolated between
 
 Let's use Dana and Fox pictures
 
-In this clip the triangles are printed to better understand what is going on.
+<p align="center">
+<img src="https://github.com/tryingsomestuff/Morph/blob/main/demo/dana.jpg" height="350"> 
+<img src="https://github.com/tryingsomestuff/Morph/blob/main/demo/fox.jpg" height="350"> 
+</p>
+
+In this clip the triangles are printed to better understand what is going on. More other the following clip is a sequence of two morphing, the first from Dana to Fox and the second from Fox to Dana. One can see that the triangulation is not exactly the same for both way.
+
+<p align="center">
+<img src="https://github.com/tryingsomestuff/Morph/blob/main/demo/video_output.gif" width="350"> 
+</p>
 
 # Credits
 
