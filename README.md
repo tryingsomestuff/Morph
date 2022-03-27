@@ -89,3 +89,10 @@ In this clip the triangles are printed to better understand what is going on. Mo
 # Credits
 
 This little tool is more or less a rewrite of https://github.com/provostm/face-morphing-multiple-images as a way to learn a bit about dlib.
+
+Usefull documentation / example :
+- http://dlib.net/python/index.html
+- https://pyimagesearch.com/2021/04/19/face-detection-with-dlib-hog-and-cnn/
+- https://github.com/italojs/facial-landmarks-recognition/blob/master/main.py
+- https://towardsdatascience.com/facial-mapping-landmarks-with-dlib-python-160abcf7d672
+
