@@ -96,7 +96,7 @@ def crop(imgA, imgB):
         return [imgA[:, diff1:avg1], imgB[abs(diff0):avg0, :]]
 
 
-def face_matching(imgA, imgB):
+def face_matching(imgA, imgB, multiple):
     """
     Takes two images and returns
     dim = (n0,n1) -> size of the cropped images
@@ -151,8 +151,8 @@ def face_matching(imgA, imgB):
                 if len(faces) == 0:
                     raise NoFaceFound
 
-        #if len(faces) != 1:
-        #    raise MoreThanOneFaceFound
+        if not multiple and len(faces) != 1:
+            raise MoreThanOneFaceFound
 
         print("Found {} faces".format(len(faces)))
 
@@ -349,10 +349,10 @@ def morph_sequence(duration, frame_rate,
     p.wait()
 
 
-def morph(imgA, imgB, duration, frame_rate, output_file, with_triangle=False):
+def morph(imgA, imgB, duration, frame_rate, output_file, with_triangle=False, multiple=False):
 
     print("Generating face match")
-    [dim, imgA, imgB, pointsA, pointsB, middles] = face_matching(imgA, imgB)
+    [dim, imgA, imgB, pointsA, pointsB, middles] = face_matching(imgA, imgB, multiple)
     print("Building triangulation (of middle points)")
     connectivity = triangulate(dim[1], dim[0], middles)
     print("Morphing...")
@@ -378,13 +378,15 @@ if __name__ == "__main__":
                         help="Display triangulation")
     parser.add_argument("--shuffle", action='store_true',
                         help="Shuffle image order in directory mode")
+    parser.add_argument("--multiple", action='store_true',
+                        help="Multiple face support (experimental)")
     args = parser.parse_args()
 
     if(args.imgA and args.imgB):
         print("Treating " + args.imgA + " and " + args.imgB)
         imgA = cv2.imread(args.imgA)
         imgB = cv2.imread(args.imgB)
-        morph(imgA, imgB, args.duration, args.frame, args.output, args.with_triangle)
+        morph(imgA, imgB, args.duration, args.frame, args.output, args.with_triangle, args.multiple)
 
     if(args.dir):
         print("Scanning " + args.dir)
@@ -398,7 +400,7 @@ if __name__ == "__main__":
             imgA = cv2.imread(os.path.join(args.dir, img_list[i]))
             imgB = cv2.imread(os.path.join(args.dir, img_list[i+1]))
             out_path = args.outdir + str(i) + "_" + args.output
-            morph(imgA, imgB, args.duration, args.frame, out_path, args.with_triangle)
+            morph(imgA, imgB, args.duration, args.frame, out_path, args.with_triangle, args.multiple)
             file_names.append("file '" + out_path + "'")
 
         with open('video_list.txt', 'w') as f:
