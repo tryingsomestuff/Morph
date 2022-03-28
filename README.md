@@ -87,7 +87,7 @@ In this clip the triangles are printed to better understand what is going on. Mo
 <img src="https://github.com/tryingsomestuff/Morph/blob/main/demo/video_output.gif" width="350"> 
 </p>
 
-# Multi-face support (experimental)
+## Multi-face support (experimental)
 
 <p align="center">
 <img src="https://github.com/tryingsomestuff/Morph/blob/main/demo/video_output3.gif" width="550"> 
