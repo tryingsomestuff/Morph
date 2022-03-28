@@ -31,14 +31,6 @@ Many image formats are supported.
 In case you run the script on many images in a directory, you can them use a video editing tool to work with them or just try in command line:
 ```ffmpeg -f concat -safe 0 -i video_list.txt -c copy output.mp4```
 
-# Multi-face support (experimental)
-
-<p align="center">
-<img src="https://github.com/tryingsomestuff/Morph/blob/main/demo/video_output3.gif" width="550"> 
-</p>
-
-If the same number of faces are present in each image and people are nearly at the same place, there is a change that `--multiple` option will do the trick as shown here with Hermione, Harry and Ron.
-
 # How does it work ?
 
 The whole algorithm has 3 phases :
@@ -95,6 +87,16 @@ In this clip the triangles are printed to better understand what is going on. Mo
 <img src="https://github.com/tryingsomestuff/Morph/blob/main/demo/video_output.gif" width="350"> 
 </p>
 
+# Multi-face support (experimental)
+
+<p align="center">
+<img src="https://github.com/tryingsomestuff/Morph/blob/main/demo/video_output3.gif" width="550"> 
+</p>
+
+If the same number of faces are present in each image and people are nearly at the same place, there is a change that `--multiple` option will do the trick as shown here with Hermione, Harry and Ron.
+
+In this case 4 more control points are added at 1/3 and 2/3 of the image and faces found are sorted according to their position in the image (from left to right). This will not always work.
+
 ## Troubleshooting
 
 A lot of things can go wrong in the process. Here are some possible issue :
@@ -113,3 +115,6 @@ Usefull documentation / example :
 - https://github.com/italojs/facial-landmarks-recognition/blob/master/main.py
 - https://towardsdatascience.com/facial-mapping-landmarks-with-dlib-python-160abcf7d672
 
+# Why so much Harry Potter here ?
+
+Because of my lovely daughter !
