@@ -16,6 +16,10 @@ class MoreThanOneFaceFound(Exception):
     pass
 
 
+class PointsSizeError(Exception):
+    pass
+
+
 def shape_helper(imgA, imgB):
     dimA = imgA.shape
     dimB = imgB.shape
@@ -119,23 +123,24 @@ def face_matching(imgA, imgB):
 
     j = 1
 
+    count = 0
+
     for img in img_list:
         print("Working on image {}".format(j))
         dim = (img.shape[0], img.shape[1])
 
         points = pointsA if j == 1 else pointsB
-        j = j+1
-
+ 
         # Ask the detector to find the bounding boxes of each face.
         print("...Detecting BB")
-		# The second parameter is the number of image pyramid layers to apply when 
-		# upscaling the image prior to applying the detector (this it the equivalent 
-		# of computing cv2.pyrUp N number of times on the image).
-		#
-		# The benefit of increasing the resolution of the input image prior to face 
-		# detection is that it may allow us to detect more faces in the image.
-		# T he downside is that the larger the input image, the more computaitonally 
-		# expensive the detection process is.		
+        # The second parameter is the number of image pyramid layers to apply when 
+        # upscaling the image prior to applying the detector (this it the equivalent 
+        # of computing cv2.pyrUp N number of times on the image).
+        #
+        # The benefit of increasing the resolution of the input image prior to face 
+        # detection is that it may allow us to detect more faces in the image.
+        # T he downside is that the larger the input image, the more computationally 
+        # expensive the detection process is.        
         faces = detector(img, 2)
 
         # Multiple tries with various upsampling to get a face ... #dirty ;)
@@ -146,8 +151,8 @@ def face_matching(imgA, imgB):
                 if len(faces) == 0:
                     raise NoFaceFound
 
-        if len(faces) != 1:
-            raise MoreThanOneFaceFound
+        #if len(faces) != 1:
+        #    raise MoreThanOneFaceFound
 
         print("Found {} faces".format(len(faces)))
 
@@ -165,18 +170,43 @@ def face_matching(imgA, imgB):
                 y = landmarks.part(i).y
                 points.append((x, y))
 
-            # Add 8 more control points on the image border
-            # One at each corner, and one in the middle of each side
-            points.append((1, 1))
-            points.append((dim[1]-1, 1))
-            points.append(((dim[1]-1)//2, 1))
-            points.append((1, dim[0]-1))
-            points.append((1, (dim[0]-1)//2))
-            points.append(((dim[1]-1)//2, dim[0]-1))
-            points.append((dim[1]-1, dim[0]-1))
-            points.append(((dim[1]-1), (dim[0]-1)//2))
+        points = np.array(points)
+        k = int(len(points) / 68)
+        if k > 1:
+            for i in range(1, k):
+                val = points[i*68:(i+1)*68].copy()
+                cur = i
+                while cur > 0 and val[0][0] < points[(cur-1)*68][0]:
+                    points[cur*68:(cur+1)*68] = points[(cur-1)*68:cur*68]
+                    cur -= 1
+                points[cur*68:(cur+1)*68] = val
+        points = points.tolist()
 
-    assert(len(pointsA) == len(pointsB))
+        # Add 8 more control points on the image border
+        # One at each corner, and one in the middle of each side
+        points.append((1, 1))
+        points.append((dim[1]-1, 1))
+        points.append(((dim[1]-1)//2, 1))
+        points.append((1, dim[0]-1))
+        points.append((1, (dim[0]-1)//2))
+        points.append(((dim[1]-1)//2, dim[0]-1))
+        points.append((dim[1]-1, dim[0]-1))
+        points.append(((dim[1]-1), (dim[0]-1)//2))
+
+        if k > 1:
+            points.append(((dim[1]-1)//3, (dim[0]-1)//3))
+            points.append(((dim[1]-1)//3, 2*(dim[0]-1)//3))
+            points.append((2*(dim[1]-1)//3, (dim[0]-1)//3))
+            points.append((2*(dim[1]-1)//3, 2*(dim[0]-1)//3))
+
+        if j == 1:
+             pointsA = points.copy()
+        else:
+             pointsB = points.copy()
+        j = j+1
+
+    if len(pointsA) != len(pointsB):
+        raise PointsSizeError
 
     # half-way points (will be used to build triangulation)
     middles = []
@@ -279,6 +309,11 @@ def morph_sequence(duration, frame_rate,
             y = (1 - alpha) * pointsA[i][1] + alpha * pointsB[i][1]
             points.append((x, y))
 
+        #font = cv2.FONT_HERSHEY_SIMPLEX
+        #fontScale = 0.5
+        #color = (255, 0, 0)
+        #thickness = 1
+
         frame = np.zeros(imgA.shape, dtype=imgA.dtype)
         for i in range(len(connectivity)):
             n1 = connectivity[i][0]
@@ -299,9 +334,14 @@ def morph_sequence(duration, frame_rate,
                 cv2.line(frame, p1, p2, (255, 255, 255), 1, 8, 0)
                 cv2.line(frame, p2, p3, (255, 255, 255), 1, 8, 0)
                 cv2.line(frame, p3, p1, (255, 255, 255), 1, 8, 0)
+                #cv2.circle(img = frame, center = p1, radius = dim[0]//150, color = (255,0,0), thickness = dim[0]//250)
+                #cv2.circle(img = frame, center = p2, radius = dim[0]//150, color = (255,0,0), thickness = dim[0]//250)
+                #cv2.circle(img = frame, center = p3, radius = dim[0]//150, color = (255,0,0), thickness = dim[0]//250)
+                #cv2.putText(frame, str(n1), p1, font, fontScale, color, thickness, cv2.LINE_AA)
+                #cv2.putText(frame, str(n2), p2, font, fontScale, color, thickness, cv2.LINE_AA)
+                #cv2.putText(frame, str(n3), p3, font, fontScale, color, thickness, cv2.LINE_AA)
 
-        frame_image = Image.fromarray(
-            cv2.cvtColor(np.uint8(frame), cv2.COLOR_BGR2RGB))
+        frame_image = Image.fromarray(cv2.cvtColor(np.uint8(frame), cv2.COLOR_BGR2RGB))
         # save to pipe
         frame_image.save(p.stdin, 'JPEG')
 
@@ -311,59 +351,59 @@ def morph_sequence(duration, frame_rate,
 
 def morph(imgA, imgB, duration, frame_rate, output_file, with_triangle=False):
 
-	print("Generating face match")
-	[dim, imgA, imgB, pointsA, pointsB, middles] = face_matching(imgA, imgB)
-	print("Building triangulation (of middle points)")
-	connectivity = triangulate(dim[1], dim[0], middles)
-	print("Morphing...")
-	morph_sequence(duration, frame_rate, imgA, imgB, pointsA,
-	               pointsB, connectivity, dim, output_file, with_triangle)
+    print("Generating face match")
+    [dim, imgA, imgB, pointsA, pointsB, middles] = face_matching(imgA, imgB)
+    print("Building triangulation (of middle points)")
+    connectivity = triangulate(dim[1], dim[0], middles)
+    print("Morphing...")
+    morph_sequence(duration, frame_rate, imgA, imgB, pointsA,
+                   pointsB, connectivity, dim, output_file, with_triangle)
 
 
 if __name__ == "__main__":
 
-	parser = argparse.ArgumentParser()
-	# two image mode
-	parser.add_argument("--imgA", help="Image A")
-	parser.add_argument("--imgB", help="Image B")
-	# directory mode
-	parser.add_argument("--dir", help="Directory with many images")
-	parser.add_argument("--duration", type=int, default=5,
-	                    help="Duration of each animation")
-	parser.add_argument("--frame", type=int, default=24, help="Frame Rate")
-	parser.add_argument("--output", help="Output video name")
-	parser.add_argument("--outdir", default="./",
-	                    help="Output directory (for multi-image processing)")
-	parser.add_argument("--with_triangle", action='store_true',
-	                    help="Display triangulation")
-	parser.add_argument("--shuffle", action='store_true',
-	                    help="Shuffle image order in directory mode")
-	args = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    # two image mode
+    parser.add_argument("--imgA", help="Image A")
+    parser.add_argument("--imgB", help="Image B")
+    # directory mode
+    parser.add_argument("--dir", help="Directory with many images")
+    parser.add_argument("--duration", type=int, default=5,
+                        help="Duration of each animation")
+    parser.add_argument("--frame", type=int, default=24, help="Frame Rate")
+    parser.add_argument("--output", help="Output video name")
+    parser.add_argument("--outdir", default="./",
+                        help="Output directory (for multi-image processing)")
+    parser.add_argument("--with_triangle", action='store_true',
+                        help="Display triangulation")
+    parser.add_argument("--shuffle", action='store_true',
+                        help="Shuffle image order in directory mode")
+    args = parser.parse_args()
 
-	if(args.imgA and args.imgB):
-		print("Treating " + args.imgA + " and " + args.imgB)
-		imgA = cv2.imread(args.imgA)
-		imgB = cv2.imread(args.imgB)
-		morph(imgA, imgB, args.duration, args.frame, args.output, args.with_triangle)
+    if(args.imgA and args.imgB):
+        print("Treating " + args.imgA + " and " + args.imgB)
+        imgA = cv2.imread(args.imgA)
+        imgB = cv2.imread(args.imgB)
+        morph(imgA, imgB, args.duration, args.frame, args.output, args.with_triangle)
 
-	if(args.dir):
-		print("Scanning " + args.dir)
-		img_list = sorted(os.listdir(args.dir))
-		if ( args.shuffle):
-			img_list = random.shuffle(img_list)
+    if(args.dir):
+        print("Scanning " + args.dir)
+        img_list = sorted(os.listdir(args.dir))
+        if ( args.shuffle):
+            img_list = random.shuffle(img_list)
 
-		file_names = []
-		for i in range(0, len(img_list)-1):
-			print("Treating " + img_list[i] + " and " + img_list[i+1])
-			imgA = cv2.imread(os.path.join(args.dir, img_list[i]))
-			imgB = cv2.imread(os.path.join(args.dir, img_list[i+1]))
-			out_path = args.outdir + str(i) + "_" + args.output
-			morph(imgA, imgB, args.duration, args.frame, out_path, args.with_triangle)
-			file_names.append("file '" + out_path + "'")
+        file_names = []
+        for i in range(0, len(img_list)-1):
+            print("Treating " + img_list[i] + " and " + img_list[i+1])
+            imgA = cv2.imread(os.path.join(args.dir, img_list[i]))
+            imgB = cv2.imread(os.path.join(args.dir, img_list[i+1]))
+            out_path = args.outdir + str(i) + "_" + args.output
+            morph(imgA, imgB, args.duration, args.frame, out_path, args.with_triangle)
+            file_names.append("file '" + out_path + "'")
 
-		with open('video_list.txt', 'w') as f:
-			f.write('\n'.join(file_names))
-			f.close()
-			print("To fuse all video, use : ffmpeg -f concat -safe 0 -i video_list.txt -c copy output.mp4")
+        with open('video_list.txt', 'w') as f:
+            f.write('\n'.join(file_names))
+            f.close()
+            print("To fuse all video, use : ffmpeg -f concat -safe 0 -i video_list.txt -c copy output.mp4")
 
-	print("done !")
+    print("done !")
