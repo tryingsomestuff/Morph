@@ -24,11 +24,20 @@ You'll need cv2, PIL, numpy and dlib (you can use pip to get them).
 - ```--tmpdir```: Directory to store all the videos in ```--dir```mode.
 - ```--shuffle```: Shuffle image order in directory mode
 - ```--with_triangle```: Display the triangulation
+- ```--multiple```: Experimental multi face support (must have same number of faces in all images of course...)
 
 Many image formats are supported.
 
 In case you run the script on many images in a directory, you can them use a video editing tool to work with them or just try in command line:
 ```ffmpeg -f concat -safe 0 -i video_list.txt -c copy output.mp4```
+
+# Multi-face support (experimental)
+
+<p align="center">
+<img src="https://github.com/tryingsomestuff/Morph/blob/main/demo/video_output2.gif" width="350"> 
+</p>
+
+If the same number of faces are present in each image and people are nearly at the same place, there is a change that `--multiple` option will do the trick as shown here with Hermione, Harry and Ron.
 
 # How does it work ?
 
@@ -90,7 +99,8 @@ In this clip the triangles are printed to better understand what is going on. Mo
 
 A lot of things can go wrong in the process. Here are some possible issue :
 - the detector cannot find a face on the picture (`NoFaceFound` exception) : maybe the face it not exactly front oriented or too rotated in the picture. You can try to edit the picture to make the face well oriented and crop the picture by yourself
-- the detector finds more than one person (`MoreThanOneFaceFound` exception) : if there are more than one person on the picture, for now, the algorithm will fail. This is work in progress ...
+- the detector finds more than one person (`MoreThanOneFaceFound` exception) and ```--multiple``` was not set : if there are more than one person on the picture, for now, the algorithm will fail. This is work in progress ...
+- If ```--multiple``` is set but a different number of face is found on each image (`PointsSizeError` exception) : be sure number of faces are the same, try to put them nearly as the same place in all pictures.
 - any other issue (out of bound, ffmpeg issue, ...) : try to use a simpler picture, with a uniform background.
 
 # Credits
