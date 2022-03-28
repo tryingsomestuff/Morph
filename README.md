@@ -34,7 +34,7 @@ In case you run the script on many images in a directory, you can them use a vid
 # Multi-face support (experimental)
 
 <p align="center">
-<img src="https://github.com/tryingsomestuff/Morph/blob/main/demo/video_output2.gif" width="350"> 
+<img src="https://github.com/tryingsomestuff/Morph/blob/main/demo/video_output3.gif" width="350"> 
 </p>
 
 If the same number of faces are present in each image and people are nearly at the same place, there is a change that `--multiple` option will do the trick as shown here with Hermione, Harry and Ron.
